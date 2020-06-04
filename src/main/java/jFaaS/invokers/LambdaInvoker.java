@@ -1,4 +1,4 @@
-package jFaas;
+package jFaas.invokers;
 
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;

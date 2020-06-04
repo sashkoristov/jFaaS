@@ -1,4 +1,4 @@
-package jFaas;
+package jFaas.invokers;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
