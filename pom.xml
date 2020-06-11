@@ -66,5 +66,11 @@
             <artifactId>jsch</artifactId>
             <version>0.1.53</version>
         </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-media</artifactId>
+            <version>12</version>
+        </dependency>
+
     </dependencies>
 </project>
