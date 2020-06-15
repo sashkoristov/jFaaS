@@ -1,16 +1,17 @@
-package jFaas;
+package jFaaS;
 
 import com.amazonaws.regions.Regions;
 import com.google.gson.JsonObject;
-import com.sun.media.jfxmedia.logging.Logger;
-import jFaas.invokers.FaaSInvoker;
-import jFaas.invokers.LambdaInvoker;
-import jFaas.invokers.OpenWhiskInvoker;
+import jFaaS.invokers.FaaSInvoker;
+import jFaaS.invokers.LambdaInvoker;
+import jFaaS.invokers.OpenWhiskInvoker;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Gateway implements FaaSInvoker {
 
@@ -21,6 +22,8 @@ public class Gateway implements FaaSInvoker {
 
     private FaaSInvoker openWhiskInvoker;
     private String openWhiskKey;
+
+    private final static Logger LOGGER = Logger.getLogger(Gateway.class.getName());
 
     /**
      * Gateway.
@@ -40,7 +43,7 @@ public class Gateway implements FaaSInvoker {
             }
 
         } catch (IOException e) {
-            Logger.logMsg(Logger.ERROR, "Cloud not load credentials file.");
+            LOGGER.log(Level.SEVERE, "Cloud not load credentials file.");
             e.printStackTrace();
         }
     }
