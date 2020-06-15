@@ -43,8 +43,7 @@ public class Gateway implements FaaSInvoker {
             }
 
         } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "Cloud not load credentials file.");
-            e.printStackTrace();
+            LOGGER.log(Level.WARNING, "Cloud not load credentials file.");
         }
     }
 
@@ -66,9 +65,15 @@ public class Gateway implements FaaSInvoker {
             }
             return lambdaInvoker.invokeFunction(function, functionInputs);
 
-        } else if (function.contains("functions.cloud.ibm") && openWhiskKey != null){
-            if(openWhiskInvoker == null){
-                openWhiskInvoker = new OpenWhiskInvoker(openWhiskKey);
+        } else if (function.contains("functions.cloud.ibm")){
+            if(openWhiskKey != null) {
+                if (openWhiskInvoker == null) {
+                    openWhiskInvoker = new OpenWhiskInvoker(openWhiskKey);
+                }
+            } else {
+                if (openWhiskInvoker == null) {
+                    openWhiskInvoker = new OpenWhiskInvoker("");
+                }
             }
             return openWhiskInvoker.invokeFunction(function, functionInputs);
         }
