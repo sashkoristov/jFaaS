@@ -38,6 +38,7 @@ public class LambdaInvoker implements FaaSInvoker {
         ClientConfiguration clientConfiguration = new ClientConfiguration();
         clientConfiguration.setMaxErrorRetry(2);
         clientConfiguration.setSocketTimeout(900 * 1000);
+        clientConfiguration.setMaxConnections(5000);
 
         this.lambda = AWSLambdaClientBuilder.standard().withRegion(region)
                 .withCredentials(new AWSStaticCredentialsProvider(awsCreds))
