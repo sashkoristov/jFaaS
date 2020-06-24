@@ -2,6 +2,7 @@ package jFaaS;
 
 import com.amazonaws.regions.Regions;
 import com.google.gson.JsonObject;
+import jFaaS.invokers.VMInvoker;
 import jFaaS.invokers.FaaSInvoker;
 import jFaaS.invokers.LambdaInvoker;
 import jFaaS.invokers.OpenWhiskInvoker;
@@ -23,7 +24,13 @@ public class Gateway implements FaaSInvoker {
     private FaaSInvoker openWhiskInvoker;
     private String openWhiskKey;
 
+    private VMInvoker vmInvoker;
+
     private final static Logger LOGGER = Logger.getLogger(Gateway.class.getName());
+
+    public Gateway() {
+
+    }
 
     /**
      * Gateway.
@@ -76,6 +83,11 @@ public class Gateway implements FaaSInvoker {
                 }
             }
             return openWhiskInvoker.invokeFunction(function, functionInputs);
+        } else if (function.contains(":VM:")) {
+            if (vmInvoker == null) {
+                vmInvoker = new VMInvoker();
+            }
+            return vmInvoker.invokeFunction(function, functionInputs);
         }
         return null;
     }
