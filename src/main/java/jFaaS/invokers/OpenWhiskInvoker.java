@@ -1,18 +1,23 @@
-package dps.invoker;
+package jFaaS.invokers;
+
 import com.google.gson.Gson;
-import dps.FTinvoker.exception.CancelInvokeException;
+import com.google.gson.JsonObject;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
-import requests.HTTPRequestFactory;
-import requests.IResultConverter;
-import requests.ResponseConverter;
+
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -23,46 +28,63 @@ import java.util.concurrent.TimeUnit;
 public class OpenWhiskInvoker implements FaaSInvoker {
 
     private String key;
-	private HttpUriRequest Myrequest;
-	public boolean cancel = false;
 
-    public OpenWhiskInvoker(String key){
+    /**
+     * Default constructor for openwhisk
+     *
+     * @param key to authenticate
+     */
+    public OpenWhiskInvoker(String key) {
         this.key = key;
     }
-    
-    public void cancelInvoke(){
-    	this.cancel = true;
-    	if(this.Myrequest != null){
-    	this.Myrequest.abort();
-    	}
-    }
 
-    public String invokeFunction(String function, Map<String, Object> functionInputs) throws Exception {
+    /**
+     * invoke cloud function
+     *
+     * @param function       identifier of the function
+     * @param functionInputs input parameters
+     * @return json result
+     * @throws IOException on failure
+     */
+    @Override
+    public JsonObject invokeFunction(String function, Map<String, Object> functionInputs) throws IOException {
         Map<String, String> header = new HashMap<>();
         header.put("Content-Type", "application/json");
-        header.put("Authorization",
-                "Basic " + key);
-        header.put("Accept",
-                "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3");
+        header.put("Authorization", "Basic " + key);
+        header.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3");
         header.put("Accept-Language", "en-At");
-        IResultConverter<?> resultHandler = ResponseConverter.getResponseConverter("String");
         String functionParameters = "?blocking=true&result=true";
-        Gson g = new Gson();
-        String body = g.toJson(functionInputs);
-        HttpUriRequest request = HTTPRequestFactory.getPostRequest(function + functionParameters, header, body);
-        Myrequest = request;
-        HttpClient httpClient = getHttpCLientForSSL();
-        HttpResponse response = null;
-        if (!cancel){
-        response = httpClient.execute(request);
-        return (String) resultHandler.convertResult(response);
-        }else{
-        	throw new CancelInvokeException();
+
+        String body = new Gson().toJson(functionInputs);
+        HttpPost post = new HttpPost(function + functionParameters);
+        StringEntity entity;
+        try {
+            entity = new StringEntity(body);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            return null;
         }
+        post.setEntity(entity);
+        header.forEach(post::addHeader);
+
+        HttpClient httpClient = getHttpCLientForSSL();
+        HttpResponse response;
+
+        response = httpClient.execute(post);
+
+        try {
+            InputStream inputStream = response.getEntity().getContent();
+            String stringResponse = IOUtils.toString(inputStream, StandardCharsets.UTF_8.name());
+            inputStream.close();
+            return new Gson().fromJson(stringResponse, JsonObject.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private HttpClient getHttpCLientForSSL() {
-        TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+        TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
             @Override
             public java.security.cert.X509Certificate[] getAcceptedIssuers() {
                 return null;
@@ -76,7 +98,7 @@ public class OpenWhiskInvoker implements FaaSInvoker {
             public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
             }
 
-        } };
+        }};
 
         try {
             SSLContext sslContext = SSLContext.getInstance("SSL");
