@@ -86,6 +86,9 @@ public class Gateway implements FaaSInvoker {
         } else if(function.contains("azurewebsites.net")) {
             // TODO check for azure authentication. Currently no authentication is assumed
             return httpGETInvoker.invokeFunction(function, functionInputs);
+        } else if(function.contains("fc.aliyuncs.com")) {
+            // TODO check for alibaba authentication. Currently no authentication is assumed
+            return httpGETInvoker.invokeFunction(function, functionInputs);
         }
         return null;
     }
