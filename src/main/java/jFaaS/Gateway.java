@@ -69,7 +69,7 @@ public class Gateway implements FaaSInvoker {
             }
             return lambdaInvoker.invokeFunction(function, functionInputs);
 
-        } else if (function.contains("functions.cloud.ibm")) {
+        } else if (function.contains("functions.appdomain.cloud") || function.contains("functions.cloud.ibm")) {
             if(openWhiskKey != null) {
                 if (openWhiskInvoker == null) {
                     openWhiskInvoker = new OpenWhiskInvoker(openWhiskKey);
