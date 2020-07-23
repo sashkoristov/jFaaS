@@ -1,6 +1,8 @@
 # jFaaS
 ### A multi-FaaS toolkit to facilitate development of portable applications
 
+### Currently supports AWS Lambda, IBM Cloud Functions, and all FaaS providers that support function invocations with HTTP GET requests (e.g. AWS, IBM, Google, Microsoft, Alibaba, etc) 
+
 ## Example(s)
 
 #### Gateway
