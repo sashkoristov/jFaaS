@@ -4,6 +4,7 @@ import com.amazonaws.regions.Regions;
 import com.google.gson.JsonObject;
 import jFaaS.invokers.VMInvoker;
 import jFaaS.invokers.FaaSInvoker;
+import jFaaS.invokers.HTTPGETInvoker;
 import jFaaS.invokers.LambdaInvoker;
 import jFaaS.invokers.OpenWhiskInvoker;
 
@@ -24,6 +25,7 @@ public class Gateway implements FaaSInvoker {
     private FaaSInvoker openWhiskInvoker;
     private String openWhiskKey;
 
+    private FaaSInvoker httpGETInvoker;
     private VMInvoker vmInvoker;
 
     private final static Logger LOGGER = Logger.getLogger(Gateway.class.getName());
@@ -52,6 +54,7 @@ public class Gateway implements FaaSInvoker {
         } catch (IOException e) {
             LOGGER.log(Level.WARNING, "Cloud not load credentials file.");
         }
+        httpGETInvoker = new HTTPGETInvoker();
     }
 
     /**
@@ -72,7 +75,7 @@ public class Gateway implements FaaSInvoker {
             }
             return lambdaInvoker.invokeFunction(function, functionInputs);
 
-        } else if (function.contains("functions.cloud.ibm")){
+        } else if (function.contains("functions.appdomain.cloud") || function.contains("functions.cloud.ibm")) {
             if(openWhiskKey != null) {
                 if (openWhiskInvoker == null) {
                     openWhiskInvoker = new OpenWhiskInvoker(openWhiskKey);
@@ -83,6 +86,15 @@ public class Gateway implements FaaSInvoker {
                 }
             }
             return openWhiskInvoker.invokeFunction(function, functionInputs);
+        } else if(function.contains("cloudfunctions.net")) {
+            // TODO check for google authentication. Currently no authentication is assumed
+            return httpGETInvoker.invokeFunction(function, functionInputs);
+        } else if(function.contains("azurewebsites.net")) {
+            // TODO check for azure authentication. Currently no authentication is assumed
+            return httpGETInvoker.invokeFunction(function, functionInputs);
+        } else if(function.contains("fc.aliyuncs.com")) {
+            // TODO check for alibaba authentication. Currently no authentication is assumed
+            return httpGETInvoker.invokeFunction(function, functionInputs);
         } else if (function.contains(":VM:")) {
             if (vmInvoker == null) {
                 vmInvoker = new VMInvoker();

@@ -13,12 +13,16 @@ import java.util.Map;
 
 public class HTTPGETInvoker implements FaaSInvoker {
 
+    public HTTPGETInvoker(){
+        System.setProperty("https.protocols", "TLSv1.2");
+    }
+
     /**
      * Makes a HTTP GET request.
      */
     @Override
     public JsonObject invokeFunction(String function, Map<String, Object> parameters) throws IOException {
-        String url = function + "?";
+        String url = function.contains("?") ? function + "&" : function + "?";
         StringBuilder urlBuilder = new StringBuilder(url);
         boolean firstValue = true;
         for (Map.Entry<String, Object> entry : parameters.entrySet()) {
