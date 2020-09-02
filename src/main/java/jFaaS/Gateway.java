@@ -2,6 +2,7 @@ package jFaaS;
 
 import com.amazonaws.regions.Regions;
 import com.google.gson.JsonObject;
+import jFaaS.invokers.VMInvoker;
 import jFaaS.invokers.FaaSInvoker;
 import jFaaS.invokers.HTTPGETInvoker;
 import jFaaS.invokers.LambdaInvoker;
@@ -25,8 +26,13 @@ public class Gateway implements FaaSInvoker {
     private String openWhiskKey;
 
     private FaaSInvoker httpGETInvoker;
+    private VMInvoker vmInvoker;
 
     private final static Logger LOGGER = Logger.getLogger(Gateway.class.getName());
+
+    public Gateway() {
+
+    }
 
     /**
      * Gateway.
@@ -89,6 +95,11 @@ public class Gateway implements FaaSInvoker {
         } else if(function.contains("fc.aliyuncs.com")) {
             // TODO check for alibaba authentication. Currently no authentication is assumed
             return httpGETInvoker.invokeFunction(function, functionInputs);
+        } else if (function.contains(":VM:")) {
+            if (vmInvoker == null) {
+                vmInvoker = new VMInvoker();
+            }
+            return vmInvoker.invokeFunction(function, functionInputs);
         }
         return null;
     }
