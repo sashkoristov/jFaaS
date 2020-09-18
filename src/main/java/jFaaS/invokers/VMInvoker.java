@@ -13,11 +13,13 @@ import org.apache.commons.validator.routines.InetAddressValidator;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
 public class VMInvoker implements FaaSInvoker {
 
-    private static final String KEY_FILE_PATH = "src/main/resources/private-key.pem";
-    private static final String TASKS_FILE_PATH = "src/main/resources/Tasks.yaml";
+    private static final String KEY_FILE_PATH = "src/main/resources/keys/private-key.pem";
+    private static final String TASKS_FILE_PATH = "src/main/resources/resourceFiles/Tasks.yaml";
+    private CountDownLatch latch;
 
     /**
      * This method invokes the task
@@ -28,15 +30,21 @@ public class VMInvoker implements FaaSInvoker {
      */
     @Override
     public JsonObject invokeFunction(String function, Map<String, Object> functionInputs) {
+        latch = new CountDownLatch(1);
         ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
         try {
-            List<TaskInfo> tasksInfo = yamlMapper.readValue(new File(TASKS_FILE_PATH), new TypeReference<>() {});
+            List<TaskInfo> tasksInfo = yamlMapper.readValue(new File(TASKS_FILE_PATH), new TypeReference<List<TaskInfo>>() {});
             List<String> valuesOfFunction = getValues(function);
             String task = getTask(valuesOfFunction, tasksInfo);
             if (task.endsWith(".sh")) {
                 executeScriptOnVM(getPublicIP(valuesOfFunction), getOperatingSystem(valuesOfFunction), task, getParameterString(functionInputs));
             }
         } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
         return new JsonObject();
@@ -125,7 +133,7 @@ public class VMInvoker implements FaaSInvoker {
             }
             functionInputsSorted = new TreeMap<>(functionInputsSorted);
             for (Map.Entry entry : functionInputsSorted.entrySet()) {
-                parameterString = parameterString + " " + ((JsonObject)entry.getValue()).get("value").getAsString();
+                parameterString = parameterString + " " + entry.getValue();
             }
         }
         return parameterString;
@@ -144,6 +152,7 @@ public class VMInvoker implements FaaSInvoker {
         if (session != null) {
             SSHClient.executeCommand("sh " + task + parameterString, publicIP, session);
             SSHClient.closeSession(publicIP, session);
+            latch.countDown();
         }
     }
 

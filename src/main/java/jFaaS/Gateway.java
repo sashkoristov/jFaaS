@@ -30,29 +30,27 @@ public class Gateway implements FaaSInvoker {
 
     private final static Logger LOGGER = Logger.getLogger(Gateway.class.getName());
 
-    public Gateway() {
-
-    }
-
     /**
      * Gateway.
      *
      * @param credentialsFile contains credentials for FaaS providers
      */
     public Gateway(String credentialsFile){
-        Properties properties = new Properties();
-        try {
-            properties.load(new FileInputStream(credentialsFile));
-            if (properties.containsKey("aws_access_key") && properties.containsKey("aws_secret_key")){
-                awsAccessKey = properties.getProperty("aws_access_key");
-                awsSecretKey = properties.getProperty("aws_secret_key");
-            }
-            if (properties.containsKey("ibm_api_key")){
-                openWhiskKey = properties.getProperty("ibm_api_key");
-            }
+        if (credentialsFile != null && !credentialsFile.isEmpty()) {
+            Properties properties = new Properties();
+            try {
+                properties.load(new FileInputStream(credentialsFile));
+                if (properties.containsKey("aws_access_key") && properties.containsKey("aws_secret_key")){
+                    awsAccessKey = properties.getProperty("aws_access_key");
+                    awsSecretKey = properties.getProperty("aws_secret_key");
+                }
+                if (properties.containsKey("ibm_api_key")){
+                    openWhiskKey = properties.getProperty("ibm_api_key");
+                }
 
-        } catch (IOException e) {
-            LOGGER.log(Level.WARNING, "Cloud not load credentials file.");
+            } catch (IOException e) {
+                LOGGER.log(Level.WARNING, "Could not load credentials file.");
+            }
         }
         httpGETInvoker = new HTTPGETInvoker();
     }
