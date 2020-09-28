@@ -3,6 +3,13 @@
 
 ### Currently supports AWS Lambda, IBM Cloud Functions, and all FaaS providers that support function invocations with HTTP GET requests (e.g. AWS, IBM, Google, Microsoft, Alibaba, etc) 
 
+## Build
+````
+mvn package
+````
+The generated **.jar** file can be found in the **target/** folder.
+
+
 ## Example(s)
 
 #### Gateway
