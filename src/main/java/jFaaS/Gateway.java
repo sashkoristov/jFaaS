@@ -86,7 +86,7 @@ public class Gateway implements FaaSInvoker {
                     openWhiskInvoker = new OpenWhiskInvoker("");
                 }
             }
-            return openWhiskInvoker.invokeFunction(function, functionInputs);
+            return openWhiskInvoker.invokeFunction(function.endsWith(".json") ? function : function + ".json", functionInputs);
         } else if(function.contains("cloudfunctions.net")) {
             // TODO check for google authentication. Currently no authentication is assumed
             return httpGETInvoker.invokeFunction(function, functionInputs);
