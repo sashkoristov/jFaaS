@@ -52,6 +52,13 @@ public class Gateway implements FaaSInvoker {
     }
 
     /**
+     * Gateway.
+     */
+    public Gateway(){
+        httpGETInvoker = new HTTPGETInvoker();
+    }
+
+    /**
      * Invoke a cloud function.
      *
      * @param function       identifier of the function
