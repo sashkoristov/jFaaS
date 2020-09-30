@@ -5,9 +5,9 @@
 
 ## Build
 ````
-mvn package
+gradle shadowJar
 ````
-The generated **.jar** file can be found in the **target/** folder.
+The generated **jFaaS-all.jar** file can be found in the **build/libs/** folder.
 
 
 ## Example(s)
