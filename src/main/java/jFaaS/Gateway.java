@@ -19,6 +19,7 @@ public class Gateway implements FaaSInvoker {
     private FaaSInvoker lambdaInvoker;
     private String awsAccessKey;
     private String awsSecretKey;
+    private String awsSessionToken;
     private Regions currentRegion;
 
     private FaaSInvoker openWhiskInvoker;
@@ -40,6 +41,9 @@ public class Gateway implements FaaSInvoker {
             if (properties.containsKey("aws_access_key") && properties.containsKey("aws_secret_key")){
                 awsAccessKey = properties.getProperty("aws_access_key");
                 awsSecretKey = properties.getProperty("aws_secret_key");
+                if(properties.containsKey("aws_session_token")){
+                    awsSessionToken = properties.getProperty("aws_session_token");
+                }
             }
             if (properties.containsKey("ibm_api_key")){
                 openWhiskKey = properties.getProperty("ibm_api_key");
@@ -72,7 +76,7 @@ public class Gateway implements FaaSInvoker {
             Regions tmpRegion = detectRegion(function);
             if(lambdaInvoker == null || tmpRegion != currentRegion){
                 currentRegion = tmpRegion;
-                lambdaInvoker = new LambdaInvoker(awsAccessKey, awsSecretKey, currentRegion);
+                lambdaInvoker = new LambdaInvoker(awsAccessKey, awsSecretKey, awsSessionToken, currentRegion);
             }
             return lambdaInvoker.invokeFunction(function, functionInputs);
 
