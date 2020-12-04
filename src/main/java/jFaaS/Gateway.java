@@ -1,11 +1,11 @@
-package jFaas;
+package jFaaS;
 
 import com.amazonaws.regions.Regions;
 import com.google.gson.JsonObject;
-import jFaas.invokers.FaaSInvoker;
-import jFaas.invokers.HTTPGETInvoker;
-import jFaas.invokers.LambdaInvoker;
-import jFaas.invokers.OpenWhiskInvoker;
+import jFaaS.invokers.FaaSInvoker;
+import jFaaS.invokers.HTTPGETInvoker;
+import jFaaS.invokers.LambdaInvoker;
+import jFaaS.invokers.OpenWhiskInvoker;
 
 import java.io.FileInputStream;
 import java.io.IOException;
