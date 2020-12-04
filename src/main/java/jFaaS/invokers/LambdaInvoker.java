@@ -38,7 +38,7 @@ public class LambdaInvoker implements FaaSInvoker {
         this.awsSecretKey = awsSecretKey;
         this.awsSessionToken = awsSessionToken;
         ClientConfiguration clientConfiguration = new ClientConfiguration();
-        clientConfiguration.setMaxErrorRetry(2);
+        clientConfiguration.setMaxErrorRetry(1);
         clientConfiguration.setSocketTimeout(900 * 1000);
         clientConfiguration.setMaxConnections(10000);
 
