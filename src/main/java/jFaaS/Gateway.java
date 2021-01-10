@@ -2,11 +2,7 @@ package jFaaS;
 
 import com.amazonaws.regions.Regions;
 import com.google.gson.JsonObject;
-import jFaaS.invokers.VMInvoker;
-import jFaaS.invokers.FaaSInvoker;
-import jFaaS.invokers.HTTPGETInvoker;
-import jFaaS.invokers.LambdaInvoker;
-import jFaaS.invokers.OpenWhiskInvoker;
+import jFaaS.invokers.*;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -24,6 +20,10 @@ public class Gateway implements FaaSInvoker {
 
     private FaaSInvoker openWhiskInvoker;
     private String openWhiskKey;
+
+    private FaaSInvoker googleFunctionInvoker;
+    private String googleServiceAccountKey;
+    private String googleToken;
 
     private FaaSInvoker httpGETInvoker;
     private VMInvoker vmInvoker;
@@ -46,6 +46,15 @@ public class Gateway implements FaaSInvoker {
                 }
                 if (properties.containsKey("ibm_api_key")){
                     openWhiskKey = properties.getProperty("ibm_api_key");
+                }
+
+                if(properties.containsKey("google_sa_key")){
+                    googleServiceAccountKey = properties.getProperty("google_sa_key");
+                }
+
+                if(properties.containsKey("google_token")){
+                    googleToken = properties.getProperty("google_token");
+
                 }
 
             } catch (IOException e) {
@@ -84,9 +93,24 @@ public class Gateway implements FaaSInvoker {
                 }
             }
             return openWhiskInvoker.invokeFunction(function, functionInputs);
+       
         } else if(function.contains("cloudfunctions.net")) {
-            // TODO check for google authentication. Currently no authentication is assumed
-            return httpGETInvoker.invokeFunction(function, functionInputs);
+            if(googleServiceAccountKey != null) {
+                if (googleFunctionInvoker == null) {
+                    googleFunctionInvoker = new GoogleFunctionInvoker(googleServiceAccountKey, "serviceAccount");
+                }
+            } else if(googleToken != null) {
+                if (googleFunctionInvoker == null) {
+                    googleFunctionInvoker = new GoogleFunctionInvoker(googleToken, "token");
+                }
+            } else {
+                if (googleFunctionInvoker == null) {
+                    googleFunctionInvoker = new GoogleFunctionInvoker();
+
+                }
+            }
+            return googleFunctionInvoker.invokeFunction(function, functionInputs);
+
         } else if(function.contains("azurewebsites.net")) {
             // TODO check for azure authentication. Currently no authentication is assumed
             return httpGETInvoker.invokeFunction(function, functionInputs);
