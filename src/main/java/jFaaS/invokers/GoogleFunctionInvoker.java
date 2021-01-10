@@ -63,8 +63,6 @@ public class GoogleFunctionInvoker implements FaaSInvoker {
         StringBuilder responseBuilder = null;
 
         if (googleServiceAccountKey != null) {
-            System.out.println("Using Service Account for authentication:");
-            System.out.println(googleServiceAccountKey);
             InputStream serviceAccountStream = new ByteArrayInputStream(googleServiceAccountKey.getBytes(StandardCharsets.UTF_8));
 
             ServiceAccountCredentials saCreds = ServiceAccountCredentials.fromStream(serviceAccountStream);
@@ -79,24 +77,16 @@ public class GoogleFunctionInvoker implements FaaSInvoker {
             factory = transport.createRequestFactory(adapter);
             request = factory.buildPostRequest(genericUrl,content);
 
-            System.out.println("Google Token was generated: " + tokenCredential.getIdToken());
-
         }
 
          else if(googleToken != null) {
-             System.out.println("Using Token for authentication:");
-            System.out.println(googleToken);
 
             request = factory.buildPostRequest(genericUrl, content);
             String tokenValue = googleToken.substring(googleToken.indexOf('=')+1, googleToken.indexOf(','));
-
-            System.out.println(tokenValue);
-
             request.getHeaders().setAuthorization("Bearer " + tokenValue);
 
         }
          else {
-             System.out.println("No authentication given in properties file: Calling function without authentication");
             request = factory.buildPostRequest(genericUrl, content);
 
          }
