@@ -3,6 +3,13 @@
 
 ### Currently supports AWS Lambda, IBM Cloud Functions, and all FaaS providers that support function invocations with HTTP GET requests (e.g. AWS, IBM, Google, Microsoft, Alibaba, etc) 
 
+## Build
+````
+gradle shadowJar
+````
+The generated **jFaaS-all.jar** file can be found in the **build/libs/** folder.
+
+
 ## Example(s)
 
 #### Gateway

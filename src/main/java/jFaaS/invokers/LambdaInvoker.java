@@ -3,6 +3,7 @@ package jFaaS.invokers;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
@@ -20,6 +21,7 @@ import java.util.Map;
  */
 public class LambdaInvoker implements FaaSInvoker {
 
+    private String awsSessionToken;
     private String awsAccessKey;
     private String awsSecretKey;
     private AWSLambda lambda;
@@ -31,19 +33,31 @@ public class LambdaInvoker implements FaaSInvoker {
      * @param awsSecretKey aws secret key
      * @param region       of the cloud function
      */
-    public LambdaInvoker(String awsAccessKey, String awsSecretKey, Regions region) {
+    public LambdaInvoker(String awsAccessKey, String awsSecretKey, String awsSessionToken, Regions region) {
         this.awsAccessKey = awsAccessKey;
         this.awsSecretKey = awsSecretKey;
-        BasicAWSCredentials awsCreds = new BasicAWSCredentials(awsAccessKey, awsSecretKey);
+        this.awsSessionToken = awsSessionToken;
         ClientConfiguration clientConfiguration = new ClientConfiguration();
-        clientConfiguration.setMaxErrorRetry(2);
+        clientConfiguration.setMaxErrorRetry(1);
         clientConfiguration.setSocketTimeout(900 * 1000);
         clientConfiguration.setMaxConnections(10000);
 
-        this.lambda = AWSLambdaClientBuilder.standard().withRegion(region)
-                .withCredentials(new AWSStaticCredentialsProvider(awsCreds))
-                .withClientConfiguration(clientConfiguration)
-                .build();
+        if(awsSessionToken != null) {
+            BasicSessionCredentials sessionCredentials = new BasicSessionCredentials(
+                    awsAccessKey,
+                    awsSecretKey,
+                    awsSessionToken);
+            this.lambda = AWSLambdaClientBuilder.standard().withRegion(region)
+                    .withCredentials(new AWSStaticCredentialsProvider(sessionCredentials))
+                    .withClientConfiguration(clientConfiguration)
+                    .build();
+        } else {
+            BasicAWSCredentials awsCreds = new BasicAWSCredentials(awsAccessKey, awsSecretKey);
+            this.lambda = AWSLambdaClientBuilder.standard().withRegion(region)
+                    .withCredentials(new AWSStaticCredentialsProvider(awsCreds))
+                    .withClientConfiguration(clientConfiguration)
+                    .build();
+        }
     }
 
     /**

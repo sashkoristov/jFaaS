@@ -16,6 +16,7 @@ public class Gateway implements FaaSInvoker {
     private FaaSInvoker lambdaInvoker;
     private String awsAccessKey;
     private String awsSecretKey;
+    private String awsSessionToken;
     private Regions currentRegion;
 
     private FaaSInvoker openWhiskInvoker;
@@ -36,31 +37,31 @@ public class Gateway implements FaaSInvoker {
      * @param credentialsFile contains credentials for FaaS providers
      */
     public Gateway(String credentialsFile){
-        if (credentialsFile != null && !credentialsFile.isEmpty()) {
-            Properties properties = new Properties();
-            try {
-                properties.load(new FileInputStream(credentialsFile));
-                if (properties.containsKey("aws_access_key") && properties.containsKey("aws_secret_key")){
-                    awsAccessKey = properties.getProperty("aws_access_key");
-                    awsSecretKey = properties.getProperty("aws_secret_key");
+        Properties properties = new Properties();
+        try {
+            properties.load(new FileInputStream(credentialsFile));
+            if (properties.containsKey("aws_access_key") && properties.containsKey("aws_secret_key")){
+                awsAccessKey = properties.getProperty("aws_access_key");
+                awsSecretKey = properties.getProperty("aws_secret_key");
+                if(properties.containsKey("aws_session_token")){
+                    awsSessionToken = properties.getProperty("aws_session_token");
                 }
-                if (properties.containsKey("ibm_api_key")){
-                    openWhiskKey = properties.getProperty("ibm_api_key");
-                }
-
-                if(properties.containsKey("google_sa_key")){
-                    googleServiceAccountKey = properties.getProperty("google_sa_key");
-                }
-
-                if(properties.containsKey("google_token")){
-                    googleToken = properties.getProperty("google_token");
-
-                }
+            }
+            if (properties.containsKey("ibm_api_key")){
+                openWhiskKey = properties.getProperty("ibm_api_key");
+            }
 
             } catch (IOException e) {
                 LOGGER.log(Level.WARNING, "Could not load credentials file.");
             }
         }
+        httpGETInvoker = new HTTPGETInvoker();
+    }
+
+    /**
+     * Gateway.
+     */
+    public Gateway(){
         httpGETInvoker = new HTTPGETInvoker();
     }
 
@@ -78,7 +79,7 @@ public class Gateway implements FaaSInvoker {
             Regions tmpRegion = detectRegion(function);
             if(lambdaInvoker == null || tmpRegion != currentRegion){
                 currentRegion = tmpRegion;
-                lambdaInvoker = new LambdaInvoker(awsAccessKey, awsSecretKey, currentRegion);
+                lambdaInvoker = new LambdaInvoker(awsAccessKey, awsSecretKey, awsSessionToken, currentRegion);
             }
             return lambdaInvoker.invokeFunction(function, functionInputs);
 
@@ -92,8 +93,7 @@ public class Gateway implements FaaSInvoker {
                     openWhiskInvoker = new OpenWhiskInvoker("");
                 }
             }
-            return openWhiskInvoker.invokeFunction(function, functionInputs);
-       
+            return openWhiskInvoker.invokeFunction(function.endsWith(".json") ? function : function + ".json", functionInputs);
         } else if(function.contains("cloudfunctions.net")) {
             if(googleServiceAccountKey != null) {
                 if (googleFunctionInvoker == null) {
