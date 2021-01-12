@@ -54,9 +54,10 @@ public class Gateway implements FaaSInvoker {
             } catch (IOException e) {
                 LOGGER.log(Level.WARNING, "Could not load credentials file.");
             }
-        }
         httpGETInvoker = new HTTPGETInvoker();
+
     }
+
 
     /**
      * Gateway.
