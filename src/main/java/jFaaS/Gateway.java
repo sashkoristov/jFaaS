@@ -26,6 +26,9 @@ public class Gateway implements FaaSInvoker {
     private String googleServiceAccountKey;
     private String googleToken;
 
+    private FaaSInvoker azureInvoker;
+    private String azureKey;
+
     private FaaSInvoker httpGETInvoker;
     private VMInvoker vmInvoker;
 
@@ -49,6 +52,19 @@ public class Gateway implements FaaSInvoker {
             }
             if (properties.containsKey("ibm_api_key")){
                 openWhiskKey = properties.getProperty("ibm_api_key");
+            }
+
+            if(properties.containsKey("google_sa_key")){
+                googleServiceAccountKey = properties.getProperty("google_sa_key");
+            }
+            if(properties.containsKey("google_token")){
+                googleServiceAccountKey = properties.getProperty("google_token");
+
+            }
+
+            if(properties.containsKey("azure_key")){
+                azureKey = properties.getProperty("azure_key");
+
             }
 
             } catch (IOException e) {
@@ -105,16 +121,20 @@ public class Gateway implements FaaSInvoker {
                     googleFunctionInvoker = new GoogleFunctionInvoker(googleToken, "token");
                 }
             } else {
-                if (googleFunctionInvoker == null) {
-                    googleFunctionInvoker = new GoogleFunctionInvoker();
-
-                }
+               return httpGETInvoker.invokeFunction(function, functionInputs);
             }
             return googleFunctionInvoker.invokeFunction(function, functionInputs);
 
         } else if(function.contains("azurewebsites.net")) {
-            // TODO check for azure authentication. Currently no authentication is assumed
+            if(azureKey != null){
+                if(azureInvoker == null){
+                    azureInvoker = new AzureInvoker(azureKey);
+                }
+                return azureInvoker.invokeFunction(function, functionInputs);
+            }
             return httpGETInvoker.invokeFunction(function, functionInputs);
+
+
         } else if(function.contains("fc.aliyuncs.com")) {
             // TODO check for alibaba authentication. Currently no authentication is assumed
             return httpGETInvoker.invokeFunction(function, functionInputs);
