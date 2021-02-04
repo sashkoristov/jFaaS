@@ -1,7 +1,32 @@
-# jFaaS
-### A multi-FaaS toolkit to facilitate development of portable applications
+# jFaaS - A multi-FaaS toolkit to facilitate development of portable Java applications
 
-### Currently supports AWS Lambda, IBM Cloud Functions, and all FaaS providers that support function invocations with HTTP GET requests (e.g. AWS, IBM, Google, Microsoft, Alibaba, etc) 
+## General overview 
+
+jFaaS is a Java toolkit that can be imported in a Java application to allow a portable invocation of serverless functions on all well-known FaaS providers. It abstracts all well-known FaaS providers.
+
+jFaaS offers a single interface requires function location (e.g., ARN on AWS) and the function input. For invocation with authentication, jFaaS requires credentials in the form presented bellow.
+
+
+## Supported portable invocations
+
+Invocations are supported on all well-known FaaS providers with or without authentication:
+
+- With authentication
+    - AWS Lambda (LambdaInvoker.java)
+    - IBM Cloud Functions (OpenWhiskInvoker.java)
+    - Google Cloud Functions (GoogleFunctionInvoker.java)
+    - Microsoft Azure Functions (AzureInvoker.java)
+- Without authentication (HTTPGETInvoker.java) - all FaaS providers that support function invocations with HTTP GET requests
+    - AWS Lambda
+    - IBM Cloud Functions
+    - Google Cloud Functions
+    - Microsoft Azure Functions
+    - Alibaba 
+    - etc
+
+Test phase - invoking tasks into a VM (VMInvoker.java)
+- Amazon EC2
+- Azure VMs
 
 ## Build
 ````
@@ -12,7 +37,7 @@ The generated **jFaaS-all.jar** file can be found in the **build/libs/** folder.
 
 ## Example(s)
 
-#### Gateway
+#### Gateway (preferrable)
 ````
 // Create instance of Gateway
 Gateway gateway = new Gateway("path/to/credentials.properties");
@@ -40,6 +65,8 @@ try {
 aws_access_key=
 aws_secret_key=
 ibm_api_key=
+google_sa_key=
+azure_key=
 ````
 
 #### HTTPGETInvoker
@@ -62,3 +89,17 @@ try {
 // Continue with result variable
 ... 
 ````
+
+
+# Contributions
+
+This project resulted as a part of several bachelor theses at department of computer science, University of Innsbruck, supervised by Dr. Sashko Ristov (sashko@dps.uibk.ac.at):
+
+- "G2GA: Portable execution of workflows in Google Cloud Functions across multiple FaaS platforms", Anna Kapeller and Felix Petschko, SS2021 (Google and Azure function invokers)
+- "Running workflow applications across multiple cloud providers", Marina Aichinger, SS2020 (AWS and Azure VM invoker)
+- "Multi-provider enactment engine (EE) for serverless workflow applications", Jakob Nöckl, Markus Moosbrugger, SS2019. `Among top three theses for 2019` at the institute of computer science. (AWS and IBM function invokers)
+
+# Support
+
+If you need any additional information, please do not hesitate to contact sashko@dps.uibk.ac.at.
+
