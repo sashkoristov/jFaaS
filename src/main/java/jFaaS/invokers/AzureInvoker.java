@@ -61,7 +61,7 @@ public class AzureInvoker implements  FaaSInvoker{
         }
 
         assert responseBuilder != null;
-        System.out.println(responseBuilder.toString());
+
         return new Gson().fromJson(responseBuilder.toString(), JsonObject.class).getAsJsonObject();
     }
 }
