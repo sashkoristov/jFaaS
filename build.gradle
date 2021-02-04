@@ -30,9 +30,14 @@ dependencies {
     implementation 'com.amazonaws:aws-java-sdk-lambda:1.11.327'
     implementation 'org.apache.commons:commons-lang3:3.4'
     implementation 'commons-io:commons-io:2.4'
+    implementation 'commons-validator:commons-validator:1.6'
     implementation 'org.slf4j:slf4j-simple:1.6.1'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.11.0'
+    implementation 'com.jcraft:jsch:0.1.53'
+    implementation 'org.openjfx:javafx-media:12'
+    implementation 'com.google.auth:google-auth-library-credentials:0.22.2'
+    implementation 'com.google.cloud:google-cloud-iamcredentials:1.1.7'
 }
-
 group = 'jFaaS'
 version = '1.0-SNAPSHOT'
 sourceCompatibility = '8'

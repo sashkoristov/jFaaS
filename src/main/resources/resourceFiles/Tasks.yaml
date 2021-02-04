@@ -1,0 +1,17 @@
+---
+- !!project.TaskInfo
+  id: 0
+  taskName: task_all.sh
+  taskFilePath: src/main/resources/executables/task_all.sh
+  metaDataNames:
+    - setup.sh
+    - private-key.pem
+  metaDataFilePaths:
+    - src/main/resources/executables/setup.sh
+    - src/main/resources/keys/private-key.pem
+- !!project.TaskInfo
+  id: 1
+  taskName: task_master.sh
+  taskFilePath: src/main/resources/executables/task_master.sh
+  metaDataNames:
+  metaDataFilePaths:

@@ -2,10 +2,7 @@ package jFaaS;
 
 import com.amazonaws.regions.Regions;
 import com.google.gson.JsonObject;
-import jFaaS.invokers.FaaSInvoker;
-import jFaaS.invokers.HTTPGETInvoker;
-import jFaaS.invokers.LambdaInvoker;
-import jFaaS.invokers.OpenWhiskInvoker;
+import jFaaS.invokers.*;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -25,7 +22,15 @@ public class Gateway implements FaaSInvoker {
     private FaaSInvoker openWhiskInvoker;
     private String openWhiskKey;
 
+    private FaaSInvoker googleFunctionInvoker;
+    private String googleServiceAccountKey;
+    private String googleToken;
+
+    private FaaSInvoker azureInvoker;
+    private String azureKey;
+
     private FaaSInvoker httpGETInvoker;
+    private VMInvoker vmInvoker;
 
     private final static Logger LOGGER = Logger.getLogger(Gateway.class.getName());
 
@@ -49,11 +54,26 @@ public class Gateway implements FaaSInvoker {
                 openWhiskKey = properties.getProperty("ibm_api_key");
             }
 
-        } catch (IOException e) {
-            LOGGER.log(Level.WARNING, "Cloud not load credentials file.");
-        }
+            if(properties.containsKey("google_sa_key")){
+                googleServiceAccountKey = properties.getProperty("google_sa_key");
+            }
+            if(properties.containsKey("google_token")){
+                googleServiceAccountKey = properties.getProperty("google_token");
+
+            }
+
+            if(properties.containsKey("azure_key")){
+                azureKey = properties.getProperty("azure_key");
+
+            }
+
+            } catch (IOException e) {
+                LOGGER.log(Level.WARNING, "Could not load credentials file.");
+            }
         httpGETInvoker = new HTTPGETInvoker();
+
     }
+
 
     /**
      * Gateway.
@@ -92,14 +112,37 @@ public class Gateway implements FaaSInvoker {
             }
             return openWhiskInvoker.invokeFunction(function.endsWith(".json") ? function : function + ".json", functionInputs);
         } else if(function.contains("cloudfunctions.net")) {
-            // TODO check for google authentication. Currently no authentication is assumed
-            return httpGETInvoker.invokeFunction(function, functionInputs);
+            if(googleServiceAccountKey != null) {
+                if (googleFunctionInvoker == null) {
+                    googleFunctionInvoker = new GoogleFunctionInvoker(googleServiceAccountKey, "serviceAccount");
+                }
+            } else if(googleToken != null) {
+                if (googleFunctionInvoker == null) {
+                    googleFunctionInvoker = new GoogleFunctionInvoker(googleToken, "token");
+                }
+            } else {
+               return httpGETInvoker.invokeFunction(function, functionInputs);
+            }
+            return googleFunctionInvoker.invokeFunction(function, functionInputs);
+
         } else if(function.contains("azurewebsites.net")) {
-            // TODO check for azure authentication. Currently no authentication is assumed
+            if(azureKey != null){
+                if(azureInvoker == null){
+                    azureInvoker = new AzureInvoker(azureKey);
+                }
+                return azureInvoker.invokeFunction(function, functionInputs);
+            }
             return httpGETInvoker.invokeFunction(function, functionInputs);
+
+
         } else if(function.contains("fc.aliyuncs.com")) {
             // TODO check for alibaba authentication. Currently no authentication is assumed
             return httpGETInvoker.invokeFunction(function, functionInputs);
+        } else if (function.contains(":VM:")) {
+            if (vmInvoker == null) {
+                vmInvoker = new VMInvoker();
+            }
+            return vmInvoker.invokeFunction(function, functionInputs);
         }
         return null;
     }
