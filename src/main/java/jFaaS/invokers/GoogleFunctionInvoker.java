@@ -36,9 +36,9 @@ public class GoogleFunctionInvoker implements FaaSInvoker {
      * @param type                 Specifies the type of the given authentication information
      */
     public GoogleFunctionInvoker(String googleAuthentication, String type) {
-        if (type == "serviceAccount") {
+        if (type.equals( "serviceAccount")) {
             this.googleServiceAccountKey = googleAuthentication;
-        } else if (type == "token") {
+        } else if (type.equals( "token")) {
             this.googleToken = googleAuthentication;
         }
 
@@ -92,7 +92,9 @@ public class GoogleFunctionInvoker implements FaaSInvoker {
          }
 
          assert request != null;
-         response = request.execute();
+        //Setting HTTP request Timeout to 60 Minutes for Cloud Functions that take more time
+        request.setReadTimeout(3600000);
+        response = request.execute();
          assert response != null;
 
          try {
