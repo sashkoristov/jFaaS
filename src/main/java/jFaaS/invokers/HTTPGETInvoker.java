@@ -46,6 +46,7 @@ public class HTTPGETInvoker implements FaaSInvoker {
             response.append(inputLine);
         }
         in.close();
-        return new Gson().fromJson(response.toString(), JsonObject.class);
+        return new Gson().fromJson(response.toString(), JsonObject.class).getAsJsonObject();
+
     }
 }
