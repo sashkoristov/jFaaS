@@ -15,6 +15,12 @@ public class AzureInvoker implements  FaaSInvoker{
 
     String azureKey;
 
+
+    /**
+     * Constructor that creates AzureInvoker object without authentication info
+     */
+    public AzureInvoker(){ this.azureKey = null; }
+
     /**
      * Constructor that creates AzureInvoker object with access key
      * @param azureKey         A valid host_key that gives access to the azure function app containing the function
