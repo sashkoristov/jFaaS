@@ -7,6 +7,7 @@ import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
+import com.amazonaws.services.lambda.model.GetFunctionRequest;
 import com.amazonaws.services.lambda.model.InvocationType;
 import com.amazonaws.services.lambda.model.InvokeRequest;
 import com.amazonaws.services.lambda.model.InvokeResult;
@@ -42,18 +43,18 @@ public class LambdaInvoker implements FaaSInvoker {
         clientConfiguration.setSocketTimeout(900 * 1000);
         clientConfiguration.setMaxConnections(10000);
 
-        if(awsSessionToken != null) {
+        if (awsSessionToken != null) {
             BasicSessionCredentials sessionCredentials = new BasicSessionCredentials(
                     awsAccessKey,
                     awsSecretKey,
                     awsSessionToken);
-            this.lambda = AWSLambdaClientBuilder.standard().withRegion(region)
+            lambda = AWSLambdaClientBuilder.standard().withRegion(region)
                     .withCredentials(new AWSStaticCredentialsProvider(sessionCredentials))
                     .withClientConfiguration(clientConfiguration)
                     .build();
         } else {
             BasicAWSCredentials awsCreds = new BasicAWSCredentials(awsAccessKey, awsSecretKey);
-            this.lambda = AWSLambdaClientBuilder.standard().withRegion(region)
+            lambda = AWSLambdaClientBuilder.standard().withRegion(region)
                     .withCredentials(new AWSStaticCredentialsProvider(awsCreds))
                     .withClientConfiguration(clientConfiguration)
                     .build();
@@ -73,28 +74,41 @@ public class LambdaInvoker implements FaaSInvoker {
         this.awsSecretKey = awsSecretKey;
         BasicAWSCredentials awsCreds = new BasicAWSCredentials(awsAccessKey, awsSecretKey);
 
-        this.lambda = AWSLambdaClientBuilder.standard().withRegion(region)
+        lambda = AWSLambdaClientBuilder.standard().withRegion(region)
                 .withCredentials(new AWSStaticCredentialsProvider(awsCreds))
                 .withClientConfiguration(clientConfiguration)
                 .build();
     }
-
 
     /**
      * Invokes the lambda function.
      *
      * @param function       function name or ARN
      * @param functionInputs inputs of the function to invoke
+     *
      * @return json result
      */
+    @Override
     public JsonObject invokeFunction(String function, Map<String, Object> functionInputs) throws IOException {
         String payload = new Gson().toJson(functionInputs);
         InvokeRequest invokeRequest = new InvokeRequest().withFunctionName(function)
                 .withInvocationType(InvocationType.RequestResponse).withPayload(payload);
 
-        InvokeResult invokeResult = this.lambda.invoke(invokeRequest);
+        InvokeResult invokeResult = lambda.invoke(invokeRequest);
 
         assert invokeResult != null;
         return new Gson().fromJson(new String(invokeResult.getPayload().array()), JsonObject.class);
     }
+
+    /**
+     * Returns the assigned memory of a function.
+     *
+     * @param function to return the memory from
+     *
+     * @return the amount of memory in MB
+     */
+    public Integer getAssignedMemory(String function) {
+        return lambda.getFunction(new GetFunctionRequest().withFunctionName(function)).getConfiguration().getMemorySize();
+    }
+
 }
