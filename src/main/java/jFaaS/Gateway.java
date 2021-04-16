@@ -144,7 +144,7 @@ public class Gateway implements FaaSInvoker {
            
             
             return azureInvoker.invokeFunction(function, functionInputs);
-            }
+            
 
         } else if(function.contains("fc.aliyuncs.com")) {
             // TODO check for alibaba authentication. Currently no authentication is assumed
