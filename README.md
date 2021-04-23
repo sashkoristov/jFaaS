@@ -2,7 +2,7 @@
 
 ## General overview 
 
-jFaaS is a Java toolkit that can be imported in a Java application to allow a portable invocation of serverless functions on all well-known FaaS providers. It abstracts all well-known FaaS providers.
+jFaaS is a Java toolkit that can be imported in a Java application to allow a portable invocation of serverless functions on all well-known FaaS providers by abstracting all their individual APIs.
 
 jFaaS offers a single interface requires function location (e.g., ARN on AWS) and the function input. For invocation with authentication, jFaaS requires credentials in the form presented bellow.
 
@@ -16,6 +16,7 @@ Invocations are supported on all well-known FaaS providers with or without authe
     - IBM Cloud Functions (OpenWhiskInvoker.java)
     - Google Cloud Functions (GoogleFunctionInvoker.java)
     - Microsoft Azure Functions (AzureInvoker.java)
+
 - Without authentication (HTTPGETInvoker.java) - all FaaS providers that support function invocations with HTTP GET requests
     - AWS Lambda
     - IBM Cloud Functions
@@ -36,6 +37,27 @@ The generated **jFaaS-all.jar** file can be found in the **build/libs/** folder.
 
 
 ## Example(s)
+
+#### Structure ``credentials.proporties``, which should be placed in the same folder as the **jFaaS-all.jar**:
+````
+aws_access_key=
+aws_secret_key=
+aws_session_token=              // (needed for AWS Educate)
+ibm_api_key=
+google_sa_key={\
+ "type": "",\
+ "project_id": "",\
+ "private_key_id": "",\
+ "private_key": "-----BEGIN PRIVATE KEY-----\\n ... \\n-----END PRIVATE KEY-----\\n",\
+ "client_email": "",\
+ "client_id": "",\
+ "auth_uri": "",\
+ "token_uri": "",\
+ "auth_provider_x509_cert_url": "",\
+ "client_x509_cert_url": ""\
+}
+azure_key=
+````
 
 #### Gateway (preferrable)
 ````
@@ -60,14 +82,6 @@ try {
 ...
 ````
 
-###### Structure ``credentials.proporties``:
-````
-aws_access_key=
-aws_secret_key=
-ibm_api_key=
-google_sa_key=
-azure_key=
-````
 
 #### HTTPGETInvoker
 ````
