@@ -1,8 +1,8 @@
 package jFaaS;
 
 import com.amazonaws.regions.Regions;
-import com.google.gson.JsonObject;
 import jFaaS.invokers.*;
+import jFaaS.utils.PairResult;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -111,7 +111,7 @@ public class Gateway implements FaaSInvoker {
      * @throws IOException on failure
      */
     @Override
-    public JsonObject invokeFunction(String function, Map<String, Object> functionInputs) throws IOException {
+    public PairResult<String, Long> invokeFunction(String function, Map<String, Object> functionInputs) throws IOException {
         if (function.contains("arn:") && awsSecretKey != null && awsAccessKey != null) {
             Regions tmpRegion = detectRegion(function);
             if (lambdaInvoker == null || tmpRegion != currentRegion) {

@@ -2,6 +2,7 @@ package jFaaS.invokers;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import jFaaS.utils.PairResult;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,15 +14,17 @@ import java.util.Map;
 
 public class HTTPGETInvoker implements FaaSInvoker {
 
-    public HTTPGETInvoker(){
+    public HTTPGETInvoker() {
         System.setProperty("https.protocols", "TLSv1.2");
     }
 
     /**
      * Makes a HTTP GET request.
+     *
+     * @return
      */
     @Override
-    public JsonObject invokeFunction(String function, Map<String, Object> parameters) throws IOException {
+    public PairResult<String, Long> invokeFunction(String function, Map<String, Object> parameters) throws IOException {
         String url = function.contains("?") ? function + "&" : function + "?";
         StringBuilder urlBuilder = new StringBuilder(url);
         boolean firstValue = true;
@@ -34,6 +37,7 @@ public class HTTPGETInvoker implements FaaSInvoker {
             }
         }
 
+        long start = System.currentTimeMillis();
         URL obj = new URL(urlBuilder.toString());
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("GET");
@@ -46,7 +50,7 @@ public class HTTPGETInvoker implements FaaSInvoker {
             response.append(inputLine);
         }
         in.close();
-        return new Gson().fromJson(response.toString(), JsonObject.class).getAsJsonObject();
+        return new PairResult<>(new Gson().fromJson(response.toString(), JsonObject.class).getAsJsonObject().toString(), System.currentTimeMillis() - start);
 
     }
 }

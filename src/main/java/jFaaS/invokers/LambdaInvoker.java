@@ -13,6 +13,7 @@ import com.amazonaws.services.lambda.model.InvokeRequest;
 import com.amazonaws.services.lambda.model.InvokeResult;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import jFaaS.utils.PairResult;
 
 import java.io.IOException;
 import java.util.Map;
@@ -89,15 +90,16 @@ public class LambdaInvoker implements FaaSInvoker {
      * @return json result
      */
     @Override
-    public JsonObject invokeFunction(String function, Map<String, Object> functionInputs) throws IOException {
+    public PairResult<String, Long> invokeFunction(String function, Map<String, Object> functionInputs) throws IOException {
         String payload = new Gson().toJson(functionInputs);
         InvokeRequest invokeRequest = new InvokeRequest().withFunctionName(function)
                 .withInvocationType(InvocationType.RequestResponse).withPayload(payload);
 
+        long start = System.currentTimeMillis();
         InvokeResult invokeResult = lambda.invoke(invokeRequest);
 
         assert invokeResult != null;
-        return new Gson().fromJson(new String(invokeResult.getPayload().array()), JsonObject.class);
+        return new PairResult<>(new Gson().fromJson(new String(invokeResult.getPayload().array()), JsonObject.class).toString(), System.currentTimeMillis() - start);
     }
 
     /**

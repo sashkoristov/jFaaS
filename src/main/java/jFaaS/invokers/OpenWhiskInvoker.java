@@ -2,6 +2,7 @@ package jFaaS.invokers;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import jFaaS.utils.PairResult;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -43,11 +44,13 @@ public class OpenWhiskInvoker implements FaaSInvoker {
      *
      * @param function       identifier of the function
      * @param functionInputs input parameters
+     *
      * @return json result
+     *
      * @throws IOException on failure
      */
     @Override
-    public JsonObject invokeFunction(String function, Map<String, Object> functionInputs) throws IOException {
+    public PairResult<String, Long> invokeFunction(String function, Map<String, Object> functionInputs) throws IOException {
         Map<String, String> header = new HashMap<>();
         header.put("Content-Type", "application/json");
         header.put("Authorization", "Basic " + key);
@@ -70,13 +73,14 @@ public class OpenWhiskInvoker implements FaaSInvoker {
         HttpClient httpClient = getHttpCLientForSSL();
         HttpResponse response;
 
+        long start = System.currentTimeMillis();
         response = httpClient.execute(post);
 
         try {
             InputStream inputStream = response.getEntity().getContent();
             String stringResponse = IOUtils.toString(inputStream, StandardCharsets.UTF_8.name());
             inputStream.close();
-            return new Gson().fromJson(stringResponse, JsonObject.class);
+            return new PairResult<>(new Gson().fromJson(stringResponse, JsonObject.class).toString(), System.currentTimeMillis() - start);
         } catch (Exception e) {
             e.printStackTrace();
         }

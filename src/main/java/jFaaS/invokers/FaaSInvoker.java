@@ -1,6 +1,6 @@
 package jFaaS.invokers;
 
-import com.google.gson.JsonObject;
+import jFaaS.utils.PairResult;
 
 import java.io.IOException;
 import java.util.Map;
@@ -15,8 +15,10 @@ public interface FaaSInvoker {
      *
      * @param function       identifier of the function
      * @param functionInputs input parameters
-     * @return JsonObject as result
+     *
+     * @return PairResult as result with round trip time
+     *
      * @throws IOException on failure
      */
-    JsonObject invokeFunction(String function, Map<String, Object> functionInputs) throws IOException;
+    PairResult<String, Long> invokeFunction(String function, Map<String, Object> functionInputs) throws IOException;
 }

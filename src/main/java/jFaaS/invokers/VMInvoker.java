@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.gson.JsonObject;
 import com.jcraft.jsch.Session;
+import jFaaS.utils.PairResult;
 import org.apache.commons.validator.routines.InetAddressValidator;
 
 import java.io.File;
@@ -24,12 +25,14 @@ public class VMInvoker implements FaaSInvoker {
     /**
      * This method invokes the task
      *
-     * @param function has the form "IP:VM:OS:TaskID"
+     * @param function       has the form "IP:VM:OS:TaskID"
      * @param functionInputs contains the parameters for invoking the task on the machine
+     *
      * @return
      */
     @Override
-    public JsonObject invokeFunction(String function, Map<String, Object> functionInputs) {
+    public PairResult<String, Long> invokeFunction(String function, Map<String, Object> functionInputs) {
+        long start = System.currentTimeMillis();
         latch = new CountDownLatch(1);
         ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
         try {
@@ -47,32 +50,32 @@ public class VMInvoker implements FaaSInvoker {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        return new JsonObject();
+        return new PairResult<>(new JsonObject().toString(), System.currentTimeMillis() - start);
     }
 
     /**
-     * This method gets a String, the "value", with the form:
-     * "IP:ResourceType:OperatingSystem:TaskID"
-     * and it returns all fields separated by : as a list
+     * This method gets a String, the "value", with the form: "IP:ResourceType:OperatingSystem:TaskID" and it returns
+     * all fields separated by : as a list
      *
      * @param value
+     *
      * @return
      */
     private List<String> getValues(String value) {
         List<String> values = new ArrayList<>();
-        while(value.contains(":")) {
+        while (value.contains(":")) {
             values.add(value.substring(0, value.indexOf(":")));
-            value = value.substring(value.indexOf(":")+1);
+            value = value.substring(value.indexOf(":") + 1);
         }
         values.add(value);
         return values;
     }
 
     /**
-     * This method checks if a valid IP address is in the given list
-     * and returns it
+     * This method checks if a valid IP address is in the given list and returns it
      *
      * @param valuesOfFunction
+     *
      * @return
      */
     private String getPublicIP(List<String> valuesOfFunction) {
@@ -83,10 +86,10 @@ public class VMInvoker implements FaaSInvoker {
     }
 
     /**
-     * This method checks if a valid operating system is in the given list
-     * and returns it
+     * This method checks if a valid operating system is in the given list and returns it
      *
      * @param valuesOfFunction
+     *
      * @return
      */
     private OperatingSystem getOperatingSystem(List<String> valuesOfFunction) {
@@ -98,11 +101,11 @@ public class VMInvoker implements FaaSInvoker {
     }
 
     /**
-     * This method checks if the 4th field is a valid task ID
-     * and returns the filename of the respective task
+     * This method checks if the 4th field is a valid task ID and returns the filename of the respective task
      *
      * @param valuesOfFunction
      * @param tasksInfo
+     *
      * @return
      */
     private String getTask(List<String> valuesOfFunction, List<TaskInfo> tasksInfo) {
@@ -118,10 +121,11 @@ public class VMInvoker implements FaaSInvoker {
     }
 
     /**
-     * This method returns all given parameters as single string
-     * in the following form: " parameter1 parameter2 parameterN"
+     * This method returns all given parameters as single string in the following form: " parameter1 parameter2
+     * parameterN"
      *
      * @param functionInputs
+     *
      * @return
      */
     private String getParameterString(Map<String, Object> functionInputs) {
@@ -129,7 +133,7 @@ public class VMInvoker implements FaaSInvoker {
         if (functionInputs != null && !functionInputs.isEmpty()) {
             Map<Integer, Object> functionInputsSorted = new HashMap<>();
             for (Map.Entry entry : functionInputs.entrySet()) {
-                functionInputsSorted.put(Integer.valueOf((String)entry.getKey()), entry.getValue());
+                functionInputsSorted.put(Integer.valueOf((String) entry.getKey()), entry.getValue());
             }
             functionInputsSorted = new TreeMap<>(functionInputsSorted);
             for (Map.Entry entry : functionInputsSorted.entrySet()) {
@@ -155,7 +159,6 @@ public class VMInvoker implements FaaSInvoker {
             latch.countDown();
         }
     }
-
 
 
 }
