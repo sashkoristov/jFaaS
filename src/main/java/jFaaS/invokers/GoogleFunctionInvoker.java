@@ -51,7 +51,6 @@ public class GoogleFunctionInvoker implements FaaSInvoker {
      * @param functionInputs inputs of the function to invoke
      * @return json result
      */
-    @Override
     public JsonObject invokeFunction(String function, Map<String, Object> functionInputs) throws IOException {
         GenericUrl genericUrl = new GenericUrl(function);
         HttpTransport transport = new NetHttpTransport();
