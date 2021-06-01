@@ -15,9 +15,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import jFaaS.utils.PairResult;
 
-
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -101,7 +99,7 @@ public class LambdaInvoker implements FaaSInvoker {
         InvokeResult invokeResult = lambda.invoke(invokeRequest);
 
         assert invokeResult != null;
-        return new PairResult<>(new Gson().fromJson(new String(invokeResult.getPayload().array()), JsonObject.class).get("body").getAsString(), System.currentTimeMillis() - start);
+        return new PairResult<>(new Gson().fromJson(new String(invokeResult.getPayload().array()), JsonObject.class).toString(), System.currentTimeMillis() - start);
     }
 
     /**
