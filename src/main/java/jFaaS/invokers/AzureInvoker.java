@@ -54,7 +54,9 @@ public class AzureInvoker implements FaaSInvoker {
         //Setting HTTP request Timeout to 60 Minutes for Cloud Functions that take more time
         request.setReadTimeout(3600000);
         HttpHeaders headers = new HttpHeaders();
+        if(azureKey != null){
         headers.set("x-functions-key", azureKey);
+        }
         request.setHeaders(headers);
 
         long start = System.currentTimeMillis();
