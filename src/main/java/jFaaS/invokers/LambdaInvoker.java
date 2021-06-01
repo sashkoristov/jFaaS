@@ -12,8 +12,12 @@ import com.amazonaws.services.lambda.model.InvokeRequest;
 import com.amazonaws.services.lambda.model.InvokeResult;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonArray;
+import jFaaS.Gateway;
+
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -94,7 +98,19 @@ public class LambdaInvoker implements FaaSInvoker {
 
         InvokeResult invokeResult = this.lambda.invoke(invokeRequest);
 
-        assert invokeResult != null;
-        return new Gson().fromJson(new String(invokeResult.getPayload().array()), JsonObject.class);
+         assert invokeResult != null;
+
+
+        
+        JsonObject returnObject =  new Gson().fromJson(new String(invokeResult.getPayload().array()), JsonObject.class);
+
+        String body = returnObject.get("body").getAsString();
+
+        JsonObject finalObject = new Gson().fromJson(body, JsonObject.class);
+
+        return finalObject;
     }
+
+
+
 }

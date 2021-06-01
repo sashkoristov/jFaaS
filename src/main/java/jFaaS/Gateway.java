@@ -121,7 +121,10 @@ public class Gateway implements FaaSInvoker {
                     googleFunctionInvoker = new GoogleFunctionInvoker(googleToken, "token");
                 }
             } else {
-               return httpGETInvoker.invokeFunction(function, functionInputs);
+             if (googleFunctionInvoker == null) {
+
+               googleFunctionInvoker = new GoogleFunctionInvoker();
+             }
             }
             return googleFunctionInvoker.invokeFunction(function, functionInputs);
 
@@ -130,10 +133,18 @@ public class Gateway implements FaaSInvoker {
                 if(azureInvoker == null){
                     azureInvoker = new AzureInvoker(azureKey);
                 }
-                return azureInvoker.invokeFunction(function, functionInputs);
-            }
-            return httpGETInvoker.invokeFunction(function, functionInputs);
+                
+            } else{
+            
+                if(azureInvoker == null){
 
+                azureInvoker = new AzureInvoker();
+                }
+            }
+           
+            
+            return azureInvoker.invokeFunction(function, functionInputs);
+            
 
         } else if(function.contains("fc.aliyuncs.com")) {
             // TODO check for alibaba authentication. Currently no authentication is assumed
