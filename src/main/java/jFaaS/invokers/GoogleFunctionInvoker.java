@@ -7,6 +7,7 @@ import com.google.auth.oauth2.IdTokenCredentials;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 import jFaaS.utils.PairResult;
 
 import java.io.*;
@@ -109,7 +110,12 @@ public class GoogleFunctionInvoker implements FaaSInvoker {
 
         assert responseBuilder != null;
 //        return new Gson().fromJson(responseBuilder.toString(), JsonObject.class).getAsJsonObject();
-        return new PairResult<>(new Gson().fromJson(responseBuilder.toString(), JsonObject.class).getAsJsonObject().toString(), System.currentTimeMillis() - start);
+        try {
+            return new PairResult<>(new Gson().fromJson(responseBuilder.toString(), JsonObject.class).getAsJsonObject().toString(), System.currentTimeMillis() - start);
+        } catch (JsonSyntaxException e) {
+            return new PairResult<>("{\"error\":\"An error occured during parsing.\"}", System.currentTimeMillis() - start);
+        }
+
     }
 
 }
