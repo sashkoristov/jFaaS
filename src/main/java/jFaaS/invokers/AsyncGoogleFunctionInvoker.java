@@ -15,9 +15,33 @@ import java.util.Map;
 import com.google.auth.oauth2.*;
 import com.google.gson.JsonParser;
 
-public class AsyncGoogleFunctionInvoker extends GoogleFunctionInvoker {
+public class AsyncGoogleFunctionInvoker implements FaaSInvoker {
     private String googleToken;
     private String googleServiceAccountKey;
+
+    /**
+     * Constructor that creates a GoogleFunctionInvoker without authentication info
+     */
+    public AsyncGoogleFunctionInvoker() {
+        this.googleToken = null;
+        this.googleServiceAccountKey = null;
+    }
+
+
+    /**
+     * Constructor that creates a GoogleFunctionInvoker with authentication info
+     *
+     * @param googleAuthentication Either a Google Service account key or a Google Authorization Token
+     * @param type                 Specifies the type of the given authentication information
+     */
+    public AsyncGoogleFunctionInvoker(String googleAuthentication, String type) {
+        if (type.equals( "serviceAccount")) {
+            this.googleServiceAccountKey = googleAuthentication;
+        } else if (type.equals( "token")) {
+            this.googleToken = googleAuthentication;
+        }
+
+    }
 
     //Todo change to async invocation
     /**
@@ -27,6 +51,7 @@ public class AsyncGoogleFunctionInvoker extends GoogleFunctionInvoker {
      * @param functionInputs inputs of the function to invoke
      * @return json result
      */
+    @Override
     public JsonObject invokeFunction(String function, Map<String, Object> functionInputs) throws IOException {
         GenericUrl genericUrl = new GenericUrl(function);
         HttpTransport transport = new NetHttpTransport();

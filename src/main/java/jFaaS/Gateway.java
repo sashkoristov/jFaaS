@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 public class Gateway implements FaaSInvoker {
 
     private FaaSInvoker lambdaInvoker;
+    private FaaSInvoker asyncLambdaInvoker;
     private String awsAccessKey;
     private String awsSecretKey;
     private String awsSessionToken;
@@ -82,6 +83,68 @@ public class Gateway implements FaaSInvoker {
         httpGETInvoker = new HTTPGETInvoker();
     }
 
+
+    public JsonObject invokeAsyncFunciton(String function, Map<String, Object> functionInputs) throws IOException{
+        // if it is aws we call the async version
+        if (function.contains("arn:") && awsSecretKey != null && awsAccessKey != null) {
+            Regions tmpRegion = detectRegion(function);
+            if(asyncLambdaInvoker == null || tmpRegion != currentRegion){
+                currentRegion = tmpRegion;
+                asyncLambdaInvoker = new AsyncLambdaInvoker(awsAccessKey, awsSecretKey, awsSessionToken, currentRegion);
+            }
+            return asyncLambdaInvoker.invokeFunction(function, functionInputs);
+
+        //  if it is openwhisk we call the sync version
+        } else if (function.contains("functions.appdomain.cloud") || function.contains("functions.cloud.ibm")) {
+            if(openWhiskKey != null) {
+                if (openWhiskInvoker == null) {
+                    openWhiskInvoker = new OpenWhiskInvoker(openWhiskKey);
+                }
+            } else {
+                if (openWhiskInvoker == null) {
+                    openWhiskInvoker = new OpenWhiskInvoker("");
+                }
+            }
+            return openWhiskInvoker.invokeFunction(function.endsWith(".json") ? function : function + ".json", functionInputs);
+
+        // if it is google we call the async version
+        } else if(function.contains("cloudfunctions.net")) {
+            if(googleServiceAccountKey != null) {
+                if (googleFunctionInvoker == null) {
+                    googleFunctionInvoker = new GoogleFunctionInvoker(googleServiceAccountKey, "serviceAccount");
+                }
+            } else if(googleToken != null) {
+                if (googleFunctionInvoker == null) {
+                    googleFunctionInvoker = new GoogleFunctionInvoker(googleToken, "token");
+                }
+            } else {
+                return httpGETInvoker.invokeFunction(function, functionInputs);
+            }
+            return googleFunctionInvoker.invokeFunction(function, functionInputs);
+
+        // if it is azure we call the sync version
+        } else if(function.contains("azurewebsites.net")) {
+            if(azureKey != null){
+                if(azureInvoker == null){
+                    azureInvoker = new AzureInvoker(azureKey);
+                }
+                return azureInvoker.invokeFunction(function, functionInputs);
+            }
+            return httpGETInvoker.invokeFunction(function, functionInputs);
+
+        // if it is alibaba we call the sync version
+        } else if(function.contains("fc.aliyuncs.com")) {
+            // TODO check for alibaba authentication. Currently no authentication is assumed
+            return httpGETInvoker.invokeFunction(function, functionInputs);
+        } else if (function.contains(":VM:")) {
+            if (vmInvoker == null) {
+                vmInvoker = new VMInvoker();
+            }
+            return vmInvoker.invokeFunction(function, functionInputs);
+        }
+        return null;
+    }
+
     /**
      * Invoke a cloud function.
      *
@@ -90,6 +153,7 @@ public class Gateway implements FaaSInvoker {
      * @return               json result
      * @throws IOException   on failure
      */
+    //add input parameter for async invoke?
     @Override
     public JsonObject invokeFunction(String function, Map<String, Object> functionInputs) throws IOException {
         if (function.contains("arn:") && awsSecretKey != null && awsAccessKey != null) {
