@@ -84,7 +84,15 @@ public class Gateway implements FaaSInvoker {
     }
 
 
-    public JsonObject invokeAsyncFunciton(String function, Map<String, Object> functionInputs) throws IOException{
+    /**
+     * Invoke a cloud function.
+     *
+     * @param function       identifier of the function
+     * @param functionInputs input parameters
+     * @return               json result
+     * @throws IOException   on failure
+     */
+    public JsonObject invokeAsyncFunction(String function, Map<String, Object> functionInputs) throws IOException{
         // if it is aws we call the async version
         if (function.contains("arn:") && awsSecretKey != null && awsAccessKey != null) {
             Regions tmpRegion = detectRegion(function);
@@ -134,7 +142,6 @@ public class Gateway implements FaaSInvoker {
 
         // if it is alibaba we call the sync version
         } else if(function.contains("fc.aliyuncs.com")) {
-            // TODO check for alibaba authentication. Currently no authentication is assumed
             return httpGETInvoker.invokeFunction(function, functionInputs);
         } else if (function.contains(":VM:")) {
             if (vmInvoker == null) {
@@ -153,7 +160,6 @@ public class Gateway implements FaaSInvoker {
      * @return               json result
      * @throws IOException   on failure
      */
-    //add input parameter for async invoke?
     @Override
     public JsonObject invokeFunction(String function, Map<String, Object> functionInputs) throws IOException {
         if (function.contains("arn:") && awsSecretKey != null && awsAccessKey != null) {
