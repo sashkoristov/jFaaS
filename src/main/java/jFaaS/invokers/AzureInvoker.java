@@ -15,6 +15,12 @@ public class AzureInvoker implements  FaaSInvoker{
 
     String azureKey;
 
+
+    /**
+     * Constructor that creates AzureInvoker object without authentication info
+     */
+    public AzureInvoker(){ this.azureKey = null; }
+
     /**
      * Constructor that creates AzureInvoker object with access key
      * @param azureKey         A valid host_key that gives access to the azure function app containing the function
@@ -45,7 +51,9 @@ public class AzureInvoker implements  FaaSInvoker{
         //Setting HTTP request Timeout to 60 Minutes for Cloud Functions that take more time
         request.setReadTimeout(3600000);
         HttpHeaders headers = new HttpHeaders();
+        if(azureKey != null){
         headers.set("x-functions-key", azureKey);
+        }
         request.setHeaders(headers);
 
         HttpResponse response = request.execute();

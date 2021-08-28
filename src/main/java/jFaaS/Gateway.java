@@ -164,10 +164,12 @@ public class Gateway implements FaaSInvoker {
     public JsonObject invokeFunction(String function, Map<String, Object> functionInputs) throws IOException {
         if (function.contains("arn:") && awsSecretKey != null && awsAccessKey != null) {
             Regions tmpRegion = detectRegion(function);
-            if(lambdaInvoker == null || tmpRegion != currentRegion){
+/*            if(lambdaInvoker == null || tmpRegion != currentRegion){
                 currentRegion = tmpRegion;
                 lambdaInvoker = new LambdaInvoker(awsAccessKey, awsSecretKey, awsSessionToken, currentRegion);
             }
+*/
+            lambdaInvoker = new LambdaInvoker(awsAccessKey, awsSecretKey, awsSessionToken, tmpRegion);
             return lambdaInvoker.invokeFunction(function, functionInputs);
 
         } else if (function.contains("functions.appdomain.cloud") || function.contains("functions.cloud.ibm")) {
@@ -191,7 +193,10 @@ public class Gateway implements FaaSInvoker {
                     googleFunctionInvoker = new GoogleFunctionInvoker(googleToken, "token");
                 }
             } else {
-               return httpGETInvoker.invokeFunction(function, functionInputs);
+             if (googleFunctionInvoker == null) {
+
+               googleFunctionInvoker = new GoogleFunctionInvoker();
+             }
             }
             return googleFunctionInvoker.invokeFunction(function, functionInputs);
 
@@ -200,10 +205,18 @@ public class Gateway implements FaaSInvoker {
                 if(azureInvoker == null){
                     azureInvoker = new AzureInvoker(azureKey);
                 }
-                return azureInvoker.invokeFunction(function, functionInputs);
-            }
-            return httpGETInvoker.invokeFunction(function, functionInputs);
+                
+            } else{
+            
+                if(azureInvoker == null){
 
+                azureInvoker = new AzureInvoker();
+                }
+            }
+           
+            
+            return azureInvoker.invokeFunction(function, functionInputs);
+            
 
         } else if(function.contains("fc.aliyuncs.com")) {
             // TODO check for alibaba authentication. Currently no authentication is assumed
