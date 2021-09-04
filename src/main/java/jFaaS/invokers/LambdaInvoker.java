@@ -109,11 +109,16 @@ public class LambdaInvoker implements FaaSInvoker {
                 return finalObject;
             }
         }
+        JsonObject finalObject;
+        if(returnObject.get("body")==null){
+            finalObject = new Gson().fromJson(returnObject, JsonObject.class);
+        }
+        else{
+            String body = returnObject.get("body").getAsString();
+            finalObject = new Gson().fromJson(body, JsonObject.class);
+        }
 
-        String body = returnObject.get("body").getAsString();
-        JsonObject finalObject = new Gson().fromJson(body, JsonObject.class);
         return finalObject;
-
 
     }
 
