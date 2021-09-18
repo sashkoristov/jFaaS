@@ -94,7 +94,7 @@ public class AsyncLambdaInvoker implements FaaSInvoker{
 
         Integer statusCode = invokeResult.getStatusCode();
         if(statusCode == 202)
-            return new Gson().fromJson("{\"response\":\"function finished\",\"statusCode\":"+statusCode+"}",JsonObject.class);
-        return new Gson().fromJson("{\"response\":\"unknown statusCode\",\"statusCode\":"+statusCode+"}", JsonObject.class);
+            return new Gson().fromJson("{\"response\":\"function started\",\"statusCode\":"+statusCode+"}",JsonObject.class);
+        return new Gson().fromJson("{\"response\":\"an error occured\",\"statusCode\":"+statusCode+"}", JsonObject.class);
     }
 }
