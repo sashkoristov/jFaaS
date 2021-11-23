@@ -7,17 +7,15 @@ import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
+import com.amazonaws.services.lambda.model.GetFunctionRequest;
 import com.amazonaws.services.lambda.model.InvocationType;
 import com.amazonaws.services.lambda.model.InvokeRequest;
 import com.amazonaws.services.lambda.model.InvokeResult;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonArray;
-import jFaaS.Gateway;
-
+import jFaaS.utils.PairResult;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -46,18 +44,18 @@ public class LambdaInvoker implements FaaSInvoker {
         clientConfiguration.setSocketTimeout(900 * 1000);
         clientConfiguration.setMaxConnections(10000);
 
-        if(awsSessionToken != null) {
+        if (awsSessionToken != null) {
             BasicSessionCredentials sessionCredentials = new BasicSessionCredentials(
                     awsAccessKey,
                     awsSecretKey,
                     awsSessionToken);
-            this.lambda = AWSLambdaClientBuilder.standard().withRegion(region)
+            lambda = AWSLambdaClientBuilder.standard().withRegion(region)
                     .withCredentials(new AWSStaticCredentialsProvider(sessionCredentials))
                     .withClientConfiguration(clientConfiguration)
                     .build();
         } else {
             BasicAWSCredentials awsCreds = new BasicAWSCredentials(awsAccessKey, awsSecretKey);
-            this.lambda = AWSLambdaClientBuilder.standard().withRegion(region)
+            lambda = AWSLambdaClientBuilder.standard().withRegion(region)
                     .withCredentials(new AWSStaticCredentialsProvider(awsCreds))
                     .withClientConfiguration(clientConfiguration)
                     .build();
@@ -77,40 +75,42 @@ public class LambdaInvoker implements FaaSInvoker {
         this.awsSecretKey = awsSecretKey;
         BasicAWSCredentials awsCreds = new BasicAWSCredentials(awsAccessKey, awsSecretKey);
 
-        this.lambda = AWSLambdaClientBuilder.standard().withRegion(region)
+        lambda = AWSLambdaClientBuilder.standard().withRegion(region)
                 .withCredentials(new AWSStaticCredentialsProvider(awsCreds))
                 .withClientConfiguration(clientConfiguration)
                 .build();
     }
-
 
     /**
      * Invokes the lambda function.
      *
      * @param function       function name or ARN
      * @param functionInputs inputs of the function to invoke
+     *
      * @return json result
      */
-    public JsonObject invokeFunction(String function, Map<String, Object> functionInputs) throws IOException {
+    @Override
+    public PairResult<String, Long> invokeFunction(String function, Map<String, Object> functionInputs) throws IOException {
         String payload = new Gson().toJson(functionInputs);
         InvokeRequest invokeRequest = new InvokeRequest().withFunctionName(function)
                 .withInvocationType(InvocationType.RequestResponse).withPayload(payload);
 
-        InvokeResult invokeResult = this.lambda.invoke(invokeRequest);
+        long start = System.currentTimeMillis();
+        InvokeResult invokeResult = lambda.invoke(invokeRequest);
 
-         assert invokeResult != null;
-
-
-        
-        JsonObject returnObject =  new Gson().fromJson(new String(invokeResult.getPayload().array()), JsonObject.class);
-
-        String body = returnObject.get("body").getAsString();
-
-        JsonObject finalObject = new Gson().fromJson(body, JsonObject.class);
-
-        return finalObject;
+        assert invokeResult != null;
+        return new PairResult<>(new Gson().fromJson(new String(invokeResult.getPayload().array()), JsonObject.class).toString(), System.currentTimeMillis() - start);
     }
 
-
+    /**
+     * Returns the assigned memory of a function.
+     *
+     * @param function to return the memory from
+     *
+     * @return the amount of memory in MB
+     */
+    public Integer getAssignedMemory(String function) {
+        return lambda.getFunction(new GetFunctionRequest().withFunctionName(function)).getConfiguration().getMemorySize();
+    }
 
 }

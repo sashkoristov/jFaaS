@@ -4,14 +4,15 @@ import com.google.api.client.http.*;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import jFaaS.utils.PairResult;
 
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Map;
 
-public class AzureInvoker implements  FaaSInvoker{
+public class AzureInvoker implements FaaSInvoker {
 
     String azureKey;
 
@@ -19,13 +20,14 @@ public class AzureInvoker implements  FaaSInvoker{
     /**
      * Constructor that creates AzureInvoker object without authentication info
      */
-    public AzureInvoker(){ this.azureKey = null; }
+    public AzureInvoker() { azureKey = null; }
 
     /**
      * Constructor that creates AzureInvoker object with access key
-     * @param azureKey         A valid host_key that gives access to the azure function app containing the function
+     *
+     * @param azureKey A valid host_key that gives access to the azure function app containing the function
      */
-    public AzureInvoker(String azureKey){
+    public AzureInvoker(String azureKey) {
         this.azureKey = azureKey;
     }
 
@@ -35,10 +37,11 @@ public class AzureInvoker implements  FaaSInvoker{
      *
      * @param function       HttpTrigger of function for HTTPPost request
      * @param functionInputs inputs of the function to invoke
+     *
      * @return json result
      */
     @Override
-    public JsonObject invokeFunction(String function, Map<String, Object> functionInputs) throws IOException {
+    public PairResult<String, Long> invokeFunction(String function, Map<String, Object> functionInputs) throws IOException {
         GenericUrl genericUrl = new GenericUrl(function);
         HttpTransport transport = new NetHttpTransport();
         String jsoninput = new Gson().toJson(functionInputs);
@@ -56,6 +59,7 @@ public class AzureInvoker implements  FaaSInvoker{
         }
         request.setHeaders(headers);
 
+        long start = System.currentTimeMillis();
         HttpResponse response = request.execute();
         assert response != null;
 
@@ -67,12 +71,12 @@ public class AzureInvoker implements  FaaSInvoker{
                 responseBuilder.append(inputLine);
             }
             in.close();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
         assert responseBuilder != null;
 
-        return new Gson().fromJson(responseBuilder.toString(), JsonObject.class).getAsJsonObject();
+        return new PairResult<>(new Gson().fromJson(responseBuilder.toString(), JsonObject.class).getAsJsonObject().toString(), System.currentTimeMillis() - start);
     }
 }
