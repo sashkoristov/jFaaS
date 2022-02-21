@@ -99,7 +99,18 @@ public class LambdaInvoker implements FaaSInvoker {
         InvokeResult invokeResult = lambda.invoke(invokeRequest);
 
         assert invokeResult != null;
-        return new PairResult<>(new Gson().fromJson(new String(invokeResult.getPayload().array()), JsonObject.class).toString(), System.currentTimeMillis() - start);
+        long end = System.currentTimeMillis();
+
+        JsonObject result = new Gson().fromJson(new String(invokeResult.getPayload().array()), JsonObject.class);
+        PairResult<String, Long> returnValue = null;
+
+        if(result.get("statusCode") != null && result.get("body") != null) {
+            returnValue = new PairResult<>(result.get("body").toString(), end - start);
+        } else {
+            returnValue = new PairResult<>(result.toString(), end - start);
+        }
+
+        return returnValue;
     }
 
     /**
