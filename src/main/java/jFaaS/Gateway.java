@@ -44,6 +44,12 @@ public class Gateway implements FaaSInvoker {
                 if (properties.containsKey("aws_session_token")) {
                     awsSessionToken = properties.getProperty("aws_session_token");
                 }
+            } else if (properties.containsKey("aws_access_key_id") && properties.containsKey("aws_secret_access_key")) {
+                awsAccessKey = properties.getProperty("aws_access_key_id");
+                awsSecretKey = properties.getProperty("aws_secret_access_key");
+                if (properties.containsKey("aws_session_token")) {
+                    awsSessionToken = properties.getProperty("aws_session_token");
+                }
             }
             if (properties.containsKey("ibm_api_key")) {
                 openWhiskKey = properties.getProperty("ibm_api_key");
@@ -59,7 +65,10 @@ public class Gateway implements FaaSInvoker {
 
             if (properties.containsKey("azure_key")) {
                 azureKey = properties.getProperty("azure_key");
+            }
 
+            if(awsAccessKey == null && openWhiskKey == null && googleServiceAccountKey == null && azureKey == null){
+                LOGGER.log(Level.WARNING, "No valid data in credentials file found.");
             }
 
         } catch (IOException e) {

@@ -40,8 +40,8 @@ The generated **jFaaS-all.jar** file can be found in the **build/libs/** folder.
 
 #### Structure ``credentials.proporties``, which should be placed in the same folder as the **jFaaS-all.jar**:
 ````
-aws_access_key=
-aws_secret_key=
+aws_access_key_id=
+aws_secret_access_key=
 aws_session_token=              // (needed for AWS Educate)
 ibm_api_key=
 google_sa_key={\
