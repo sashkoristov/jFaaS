@@ -27,6 +27,7 @@ public class Gateway implements FaaSInvoker {
     private FaaSInvoker azureInvoker;
     private String azureKey;
     private FaaSInvoker httpGETInvoker;
+    private HTTPPOSTInvoker httpPOSTInvoker;
     private VMInvoker vmInvoker;
 
     /**
@@ -66,7 +67,7 @@ public class Gateway implements FaaSInvoker {
             LOGGER.log(Level.WARNING, "Could not load credentials file.");
         }
         httpGETInvoker = new HTTPGETInvoker();
-
+        httpPOSTInvoker = new HTTPPOSTInvoker();
     }
 
 
@@ -75,8 +76,19 @@ public class Gateway implements FaaSInvoker {
      */
     public Gateway() {
         httpGETInvoker = new HTTPGETInvoker();
+        httpPOSTInvoker = new HTTPPOSTInvoker();
     }
 
+    /**
+     * Gateway for constructer based dependency injection
+     *
+     * @param httpPOSTInvoker
+     * @param httpGETInvoker
+     */
+    public Gateway(HTTPGETInvoker httpGETInvoker, HTTPPOSTInvoker httpPOSTInvoker) {
+        this.httpGETInvoker = httpGETInvoker;
+        this.httpPOSTInvoker = httpPOSTInvoker;
+    }
     /**
      * Detect aws lambda region
      *
@@ -170,6 +182,12 @@ public class Gateway implements FaaSInvoker {
         } else if (function.contains("fc.aliyuncs.com")) {
             // TODO check for alibaba authentication. Currently no authentication is assumed
             return httpGETInvoker.invokeFunction(function, functionInputs);
+        } else if (function.startsWith("HTTP_GET:")) {
+            String url = function.split(":", 2)[1];
+            return httpGETInvoker.invokeFunction(url, functionInputs);
+        } else if (function.startsWith("HTTP_POST:")) {
+            String url = function.split(":", 2)[1];
+            return httpPOSTInvoker.invokeFunction(url, functionInputs);
         } else if (function.contains(":VM:")) {
             if (vmInvoker == null) {
                 vmInvoker = new VMInvoker();
