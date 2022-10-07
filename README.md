@@ -69,8 +69,8 @@ Map<String, Object> input = new HashMap<>();
 input.put("input", "value");
 
 // Invoke functions
-JsonObject resultLambda = null;
-JsonObject resultOpenWhisk = null;
+PairResult<String, Long> resultLambda = null;
+PairResult<String, Long> resultOpenWhisk = null;
 try {
     resultLambda = gateway.invokeFunction("arn:aws:lambda:eu-central-1:xxxxxxxxxxx:function:functionName", input);
     resultOpenWhisk = gateway.invokeFunction("https://jp-tok.functions.cloud.ibm.com/api/v1/web/xxxxxxxxxxx/default/functionName", input);
@@ -78,7 +78,9 @@ try {
     e.printStackTrace();
 }
 
-// Continue with result variables
+// Continue with result variables (output of function and Round Trip Time)
+String output = resultLambda.getResult();
+Long RTT = resultLambda.getRTT();
 ...
 ````
 
@@ -93,14 +95,16 @@ Map<String, Object> input = new HashMap<>();
 input.put("input", "value");
 
 // Invoke function
-JsonObject result;
+PairResult<String, Long> result;
 try {
     result = faaSInvoker.invokeFunction("https://jp-tok.functions.cloud.ibm.com/api/v1/web/xxxxxxxxxxx/default/functionName.json", input);
 } catch (IOException e) {
     e.printStackTrace();
 }
 
-// Continue with result variable
+// Continue with result variable (output of function and Round Trip Time)
+String output = resultLambda.getResult();
+Long RTT = resultLambda.getRTT();
 ... 
 ````
 
