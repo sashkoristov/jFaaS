@@ -1,0 +1,31 @@
+name: Publish jFaaS:jFaaS:x.y.z to GitHub Packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version of the JAR to publish (e.g., 1.0.0, 1.0.1, etc.)'
+        required: true
+        default: '1.0-SNAPSHOT' # Optional, you can set a default version if you want
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: 
+          java-version: '11'
+          distribution: 'temurin'
+
+      - name: Create jar file
+        run: ./gradlew clean build && ./gradlew shadowJar
+
+      - name: Deploy JAR to GitHub Packages
+        run: mvn deploy:deploy-file -Dfile=./build/libs/jFaaS-all.jar -DgroupId=jfaas -DartifactId=jfaas -Dversion=${{ github.event.inputs.version }} -Dpackaging=jar -DrepositoryId=github -Durl=https://maven.pkg.github.com/sashkoristov/jFaaS -DgeneratePom=true -Dmaven.resolver.transport=wagon -e -X
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
