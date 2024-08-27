@@ -41,7 +41,7 @@ public class AzureInvoker implements FaaSInvoker {
      * @return json result
      */
     @Override
-    public PairResult<String, Long> invokeFunction(String function, Map<String, Object> functionInputs) throws IOException {
+    public PairResult invokeFunction(String function, Map<String, Object> functionInputs) throws IOException {
         GenericUrl genericUrl = new GenericUrl(function);
         HttpTransport transport = new NetHttpTransport();
         String jsoninput = new Gson().toJson(functionInputs);
@@ -77,6 +77,6 @@ public class AzureInvoker implements FaaSInvoker {
 
         assert responseBuilder != null;
 
-        return new PairResult<>(new Gson().fromJson(responseBuilder.toString(), JsonObject.class).getAsJsonObject().toString(), System.currentTimeMillis() - start);
+        return new PairResult(new Gson().fromJson(responseBuilder.toString(), JsonObject.class).getAsJsonObject().toString(), System.currentTimeMillis() - start);
     }
 }

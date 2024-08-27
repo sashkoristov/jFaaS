@@ -24,7 +24,7 @@ public class HTTPGETInvoker implements FaaSInvoker {
      * @return
      */
     @Override
-    public PairResult<String, Long> invokeFunction(String function, Map<String, Object> parameters) throws IOException {
+    public PairResult invokeFunction(String function, Map<String, Object> parameters) throws IOException {
         String url = function.contains("?") ? function + "&" : function + "?";
         StringBuilder urlBuilder = new StringBuilder(url);
         boolean firstValue = true;
@@ -50,7 +50,7 @@ public class HTTPGETInvoker implements FaaSInvoker {
             response.append(inputLine);
         }
         in.close();
-        return new PairResult<>(new Gson().fromJson(response.toString(), JsonObject.class).getAsJsonObject().toString(), System.currentTimeMillis() - start);
+        return new PairResult(new Gson().fromJson(response.toString(), JsonObject.class).getAsJsonObject().toString(), System.currentTimeMillis() - start);
 
     }
 }

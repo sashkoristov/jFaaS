@@ -50,7 +50,7 @@ public class OpenWhiskInvoker implements FaaSInvoker {
      * @throws IOException on failure
      */
     @Override
-    public PairResult<String, Long> invokeFunction(String function, Map<String, Object> functionInputs) throws IOException {
+    public PairResult invokeFunction(String function, Map<String, Object> functionInputs) throws IOException {
         Map<String, String> header = new HashMap<>();
         header.put("Content-Type", "application/json");
         header.put("Authorization", "Basic " + key);
@@ -80,7 +80,7 @@ public class OpenWhiskInvoker implements FaaSInvoker {
             InputStream inputStream = response.getEntity().getContent();
             String stringResponse = IOUtils.toString(inputStream, StandardCharsets.UTF_8.name());
             inputStream.close();
-            return new PairResult<>(new Gson().fromJson(stringResponse, JsonObject.class).toString(), System.currentTimeMillis() - start);
+            return new PairResult(new Gson().fromJson(stringResponse, JsonObject.class).toString(), System.currentTimeMillis() - start);
         } catch (Exception e) {
             e.printStackTrace();
         }

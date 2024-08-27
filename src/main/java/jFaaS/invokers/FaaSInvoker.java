@@ -20,5 +20,5 @@ public interface FaaSInvoker {
      *
      * @throws IOException on failure
      */
-    PairResult<String, Long> invokeFunction(String function, Map<String, Object> functionInputs) throws IOException;
+    PairResult invokeFunction(String function, Map<String, Object> functionInputs) throws IOException;
 }
