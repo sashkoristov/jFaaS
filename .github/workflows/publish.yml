@@ -19,13 +19,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with: 
-          java-version: '11'
+          java-version: '17'
           distribution: 'temurin'
 
-      - name: Create jar file
-        run: ./gradlew clean build && ./gradlew shadowJar
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
 
-      - name: Deploy JAR to GitHub Packages
-        run: mvn deploy:deploy-file -Dfile=./build/libs/jFaaS-all.jar -DgroupId=jfaas -DartifactId=jfaas -Dversion=${{ github.event.inputs.version }} -Dpackaging=jar -DrepositoryId=github -Durl=https://maven.pkg.github.com/sashkoristov/jFaaS -DgeneratePom=true -Dmaven.resolver.transport=wagon -e -X
+      - name: Publish to GitHub Packages
+        run: ./gradlew -Pversion=${{ github.event.inputs.version }} publish
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

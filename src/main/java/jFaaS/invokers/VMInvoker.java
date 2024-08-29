@@ -31,7 +31,7 @@ public class VMInvoker implements FaaSInvoker {
      * @return
      */
     @Override
-    public PairResult<String, Long> invokeFunction(String function, Map<String, Object> functionInputs) {
+    public PairResult invokeFunction(String function, Map<String, Object> functionInputs) {
         long start = System.currentTimeMillis();
         latch = new CountDownLatch(1);
         ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
@@ -50,7 +50,7 @@ public class VMInvoker implements FaaSInvoker {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        return new PairResult<>(new JsonObject().toString(), System.currentTimeMillis() - start);
+        return new PairResult(new JsonObject().toString(), System.currentTimeMillis() - start);
     }
 
     /**

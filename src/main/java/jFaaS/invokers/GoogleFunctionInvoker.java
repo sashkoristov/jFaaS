@@ -53,7 +53,7 @@ public class GoogleFunctionInvoker implements FaaSInvoker {
      * @return json result
      */
     @Override
-    public PairResult<String, Long> invokeFunction(String function, Map<String, Object> functionInputs) throws IOException {
+    public PairResult invokeFunction(String function, Map<String, Object> functionInputs) throws IOException {
         GenericUrl genericUrl = new GenericUrl(function);
         HttpTransport transport = new NetHttpTransport();
         String jsoninput = new Gson().toJson(functionInputs);
@@ -111,9 +111,9 @@ public class GoogleFunctionInvoker implements FaaSInvoker {
         assert responseBuilder != null;
 //        return new Gson().fromJson(responseBuilder.toString(), JsonObject.class).getAsJsonObject();
         try {
-            return new PairResult<>(new Gson().fromJson(responseBuilder.toString(), JsonObject.class).getAsJsonObject().toString(), System.currentTimeMillis() - start);
+            return new PairResult(new Gson().fromJson(responseBuilder.toString(), JsonObject.class).getAsJsonObject().toString(), System.currentTimeMillis() - start);
         } catch (JsonSyntaxException e) {
-            return new PairResult<>("{\"error\":\"An error occured during parsing.\"}", System.currentTimeMillis() - start);
+            return new PairResult("{\"error\":\"An error occured during parsing.\"}", System.currentTimeMillis() - start);
         }
 
     }

@@ -1,8 +1,10 @@
 package jFaaS;
 
-import com.amazonaws.regions.Regions;
+import com.fasterxml.jackson.databind.JsonNode;
 import jFaaS.invokers.*;
 import jFaaS.utils.PairResult;
+import org.apache.commons.lang3.StringUtils;
+import software.amazon.awssdk.regions.Region;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -18,7 +20,7 @@ public class Gateway implements FaaSInvoker {
     private String awsAccessKey;
     private String awsSecretKey;
     private String awsSessionToken;
-    private Regions currentRegion;
+    private Region currentRegion;
     private FaaSInvoker openWhiskInvoker;
     private String openWhiskKey;
     private FaaSInvoker googleFunctionInvoker;
@@ -69,6 +71,36 @@ public class Gateway implements FaaSInvoker {
 
     }
 
+    public Gateway(JsonNode credentials) {
+        try {
+            if (credentials.has("aws_credentials")) {
+                JsonNode awsCredentials = credentials.get("aws_credentials");
+                awsAccessKey = awsCredentials.get("access_key").textValue();
+                awsSecretKey = awsCredentials.get("secret_key").textValue();
+                if (awsCredentials.has("token") && StringUtils.isNotEmpty(awsCredentials.get("token").textValue())) {
+                    awsSessionToken = credentials.get("aws_credentials").get("token").textValue();
+                }
+            }
+
+            if (credentials.has("gcp_credentials")) {
+                googleServiceAccountKey = credentials.get("gcp_credentials").toString();
+            }
+
+            if (credentials.has("ibm_credentials")) {
+                openWhiskKey = credentials.get("ibm_api_key").toString();
+            }
+
+            if (credentials.has("azure_credentials")) {
+                azureKey = credentials.get("azure_credentials").toString();
+            }
+
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Could not load credentials");
+        }
+
+        httpGETInvoker = new HTTPGETInvoker();
+    }
+
 
     /**
      * Gateway.
@@ -84,14 +116,14 @@ public class Gateway implements FaaSInvoker {
      *
      * @return region
      */
-    private static Regions detectRegion(String function) {
+    private static Region detectRegion(String function) {
         String regionName;
         int searchIndex = function.indexOf("lambda:");
         if (searchIndex != -1) {
             regionName = function.substring(searchIndex + "lambda:".length());
             regionName = regionName.split(":")[0];
             try {
-                return Regions.fromName(regionName);
+                return Region.of(regionName);
             } catch (Exception e) {
                 return null;
             }
@@ -111,14 +143,9 @@ public class Gateway implements FaaSInvoker {
      * @throws IOException on failure
      */
     @Override
-    public PairResult<String, Long> invokeFunction(String function, Map<String, Object> functionInputs) throws IOException {
+    public PairResult invokeFunction(String function, Map<String, Object> functionInputs) throws IOException {
         if (function.contains("arn:") && awsSecretKey != null && awsAccessKey != null) {
-            Regions tmpRegion = detectRegion(function);
-/*            if(lambdaInvoker == null || tmpRegion != currentRegion){
-                currentRegion = tmpRegion;
-                lambdaInvoker = new LambdaInvoker(awsAccessKey, awsSecretKey, awsSessionToken, currentRegion);
-            }
-*/
+            Region tmpRegion = detectRegion(function);
             lambdaInvoker = new LambdaInvoker(awsAccessKey, awsSecretKey, awsSessionToken, tmpRegion);
             return lambdaInvoker.invokeFunction(function, functionInputs);
 
@@ -144,7 +171,7 @@ public class Gateway implements FaaSInvoker {
                 }
             } else {
                 if (googleFunctionInvoker == null) {
-                googleFunctionInvoker = new GoogleFunctionInvoker();
+                    googleFunctionInvoker = new GoogleFunctionInvoker();
                 }
             }
             return googleFunctionInvoker.invokeFunction(function, functionInputs);
@@ -175,8 +202,9 @@ public class Gateway implements FaaSInvoker {
                 vmInvoker = new VMInvoker();
             }
             return vmInvoker.invokeFunction(function, functionInputs);
+        } else {
+            return httpGETInvoker.invokeFunction(function, functionInputs);
         }
-        return null;
     }
 
     /**
@@ -188,7 +216,7 @@ public class Gateway implements FaaSInvoker {
      */
     public Integer getAssignedMemory(String function) {
         if (function.contains("arn:") && awsSecretKey != null && awsAccessKey != null) {
-            Regions tmpRegion = detectRegion(function);
+            Region tmpRegion = detectRegion(function);
             if (lambdaInvoker == null || tmpRegion != currentRegion) {
                 currentRegion = tmpRegion;
                 lambdaInvoker = new LambdaInvoker(awsAccessKey, awsSecretKey, awsSessionToken, currentRegion);
@@ -199,4 +227,5 @@ public class Gateway implements FaaSInvoker {
         LOGGER.log(Level.WARNING, "Getting the assigned memory is currently not supported for your provider.");
         return -1;
     }
+
 }
